@@ -43,3 +43,24 @@
 
 1. `bash -n scripts/koha-setup/lib/koha-setup-common.sh scripts/koha-setup/steps/09-start-services.sh`.
 2. `shellcheck scripts/koha-setup/lib/koha-setup-common.sh scripts/koha-setup/steps/09-start-services.sh`.
+
+## 13) Update 2026-09-07: disable destructive automatic schema import
+
+### 13.1. Runtime contract
+
+1. `07-db-import.sh` is now a safe no-op with no DB probe, schema-file lookup, or SQL pipeline.
+2. A new Koha schema is created only through the Web installer or the supported restore workflow.
+3. A transient DB/DNS failure can no longer be mistaken for an empty database.
+
+### 13.2. Policy gate
+
+1. Added `scripts/check-db-import-safety.sh`, which rejects dangerous DB-import fragments in step 07.
+2. The policy check is connected to `scripts/deploy-orchestrator.sh` and the shared CI orchestration path.
+
+### 13.3. Verification
+
+1. `bash -n` and ShellCheck passed for all 18 repository shell scripts.
+2. All three policy checks passed through `scripts/deploy-orchestrator.sh`.
+3. The local image `koha-db-import-safety-test:local` built successfully.
+4. `07-db-import.sh` in the built image exited with code 0 under `MYSQL_SERVER=unresolvable.invalid`
+   and printed only the Web installer/restore guidance.

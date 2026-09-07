@@ -1,6 +1,6 @@
 # Build Repo Architecture (Koha Image)
 
-Дата: 2026-03-03
+Дата: 2026-09-07
 Репозиторій: `koha-docker-build`
 
 ## 1) Призначення
@@ -36,6 +36,7 @@ koha-docker-build/
   scripts/koha-setup/              # setup pipeline (s6 steps)
   scripts/check-secrets-hygiene.sh
   scripts/check-internal-ports-policy.sh
+  scripts/check-db-import-safety.sh
   docker/pinokew/ports.conf
   .gitleaks.toml
   .trivyignore
@@ -56,6 +57,7 @@ Workflow: `.github/workflows/build-and-push.yml`
 - локальні policy-скрипти:
   - `check-secrets-hygiene.sh`
   - `check-internal-ports-policy.sh`
+  - `check-db-import-safety.sh`
 - `Trivy config` (HIGH/CRITICAL, з `.trivyignore`).
 
 2. `build-and-publish` (тільки `main`, тільки owner-repo):
@@ -74,6 +76,8 @@ Workflow: `.github/workflows/build-and-push.yml`
 4. Idempotency правило:
 - якщо `${KOHA_CONF}` уже існує і не порожній, `06-koha-create.sh` пропускає `koha-create`;
 - це захищає live-конфіг від перезапису при restart/recreate.
+5. `07-db-import.sh` is a safe no-op: the image never imports the Koha schema automatically.
+   An empty database is initialized only through the Koha Web installer or the supported restore workflow.
 
 ## 6) Security/Policy контракт
 
@@ -89,6 +93,10 @@ Workflow: `.github/workflows/build-and-push.yml`
 3. Trivy:
 - `DS-0002`/`DS-0029` винесені в `.trivyignore` (поточний root-based bootstrap дизайн);
 - для image scan явно задані DB repositories (`ghcr.io/...`) для стабільного завантаження БД.
+
+4. Database initialization:
+- `check-db-import-safety.sh` rejects `kohastructure.sql`, `DROP TABLE`, and `koha-mysql` in
+  `07-db-import.sh`, preventing transient DB/DNS failures from triggering a destructive schema import.
 
 ## 7) Контракт артефакту для deploy-repo
 

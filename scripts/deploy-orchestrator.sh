@@ -24,5 +24,11 @@ else
   log "check-secrets-hygiene.sh not found, skipping"
 fi
 
+if [[ -x "./scripts/check-db-import-safety.sh" ]]; then
+  log "Running check-db-import-safety.sh"
+  bash ./scripts/check-db-import-safety.sh
+else
+  log "check-db-import-safety.sh not found, skipping"
+fi
 
 log "Orchestration script completed"

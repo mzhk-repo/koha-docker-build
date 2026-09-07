@@ -127,6 +127,7 @@ koha-docker-build/
 └── scripts/
     ├── check-internal-ports-policy.sh     # Перевірка портового контракту
     ├── check-secrets-hygiene.sh           # Перевірка секретів та .dockerignore/.gitignore правил
+    ├── check-db-import-safety.sh          # Prevents automatic destructive schema import
     └── koha-setup/                        # Runtime setup pipeline
         ├── 00-runner.sh                   # Головний раннер кроків
         ├── lib/koha-setup-common.sh       # Спільна нормалізація env та helper-функції
@@ -240,7 +241,7 @@ koha-docker-build/
 | `04` | `04-deploy-configs.sh` | Підтягує DB credentials у `/etc/mysql/koha-common.cnf`, генерує `/etc/koha/passwd`, синхронізує memcached settings |
 | `05` | `05-patch-koha-create.sh` | Патчить `koha-create` для сумісності з образом: bypass `mpm_itk`, tolerate `cgid_module`, idempotent user/restart behavior |
 | `06` | `06-koha-create.sh` | Створює Koha instance, якщо `KOHA_CONF` ще відсутній |
-| `07` | `07-db-import.sh` | Імпортує `kohastructure.sql`, якщо БД порожня |
+| `07` | `07-db-import.sh` | Safe no-op: automatic schema import is disabled; use the Web installer or restore |
 | `08` | `08-apache-config.sh` | Рендерить `ports.conf`, `ServerName`, `SetEnv KOHA_CONF` і vhost порти |
 | `09` | `09-start-services.sh` | Вмикає plack, workers і, за потреби, Elasticsearch indexer |
 | `10` | `10-languages.sh` | Синхронізує встановлені мови та system preferences |
@@ -482,6 +483,7 @@ Workflow: `.github/workflows/build-and-push.yml`
 | `Shellcheck` | Лінтинг shell-скриптів під `scripts/` |
 | `check-secrets-hygiene.sh` | Перевіряє, що `.env` не трекається, ключі не закомічені, `.dockerignore` і `.gitignore` захищають build context |
 | `check-internal-ports-policy.sh` | Валідує Dockerfile `EXPOSE` та Apache портовий контракт |
+| `check-db-import-safety.sh` | Prevents automatic destructive schema import from returning to `07-db-import.sh` |
 | `Trivy config` | Сканує репозиторій на HIGH/CRITICAL config problems |
 
 ### Job `build-and-publish`
@@ -525,6 +527,7 @@ Workflow: `.github/workflows/build-and-push.yml`
 | Трекинг `.env` | `scripts/check-secrets-hygiene.sh` |
 | Ключі/сертифікати в git | `scripts/check-secrets-hygiene.sh` |
 | Захист Docker build context | перевірка `.dockerignore` і `.gitignore` |
+| Safe database initialization | `scripts/check-db-import-safety.sh` |
 | Dockerfile best practices | `Hadolint` |
 | Shell safety | `Shellcheck` |
 | Config/image vulnerabilities | `Trivy config` і `Trivy image` |
@@ -555,6 +558,7 @@ docker run --rm -v "$PWD:/work" -w /work \
 
 bash ./scripts/check-secrets-hygiene.sh
 bash ./scripts/check-internal-ports-policy.sh
+bash ./scripts/check-db-import-safety.sh
 ```
 
 ### Коли варто міняти що
@@ -591,7 +595,9 @@ docker compose logs -f koha
 
 ### База виглядає порожньою
 
-Крок `07-db-import.sh` імпортує `kohastructure.sql` тільки якщо запит до `systempreferences` не проходить. Якщо зовнішня БД неконсистентна або partially initialized, перевіряйте її окремо.
+The image does not import the Koha schema automatically: a DB/DNS failure cannot be reliably distinguished
+from an empty database and must never trigger destructive SQL. Use the Koha Web installer for a new database
+or the supported deploy-repository restore workflow, then rerun the deployment.
 
 ### Після recreate контейнера середовище поводиться як нове
 
