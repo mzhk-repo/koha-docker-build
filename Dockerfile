@@ -35,7 +35,7 @@ RUN echo "${TARGETARCH}" && case "${TARGETARCH}" in \
 
 RUN mkdir -p /etc/apt/keyrings/ && \
     wget -qO - https://debian.koha-community.org/koha/gpg.asc | gpg --dearmor -o /etc/apt/keyrings/koha.gpg && \
-    echo "deb [signed-by=/etc/apt/keyrings/koha.gpg] https://debian.koha-community.org/koha ${KOHA_VERSION}  main" | tee /etc/apt/sources.list.d/koha.list
+    echo "deb [signed-by=/etc/apt/keyrings/koha.gpg] https://debian.koha-community.org/koha ${KOHA_VERSION%.*} main" | tee /etc/apt/sources.list.d/koha.list
 # Встановлюємо локалі, необхідні для Koha (en + uk)
 # hadolint ignore=DL3008,DL3015
 RUN apt-get update && apt-get install -y locales && \
@@ -47,7 +47,7 @@ RUN apt-get update && apt-get install -y locales && \
 # Install Koha
 # hadolint ignore=DL3008,DL3015
 RUN apt-get update \
-    && apt-get install -y koha-core \
+    && apt-get install -y "koha-core=${KOHA_VERSION}-1" \
        libauthen-sasl-perl \
        idzebra-2.0 \
        apache2 \

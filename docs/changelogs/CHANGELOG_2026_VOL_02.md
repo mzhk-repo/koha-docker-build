@@ -64,3 +64,14 @@
 3. The local image `koha-db-import-safety-test:local` built successfully.
 4. `07-db-import.sh` in the built image exited with code 0 under `MYSQL_SERVER=unresolvable.invalid`
    and printed only the Web installer/restore guidance.
+
+## 14) Оновлення 2026-11-05: синхронізація шляхів у документації
+
+1. У `docs/ARCHITECTURE.md` та `README.md` виправлено шляхи до `docs/ARCHITECTURE.md` і `docs/changelogs/`.
+2. Прибрано з топології README відсутні `README.example.md` та `archive/`.
+3. У моделі changelog в архітектурі зазначено актуальні soft limit 900 і hard limit 950 рядків.
+
+## 15) Оновлення 2026-11-05: Koha 26.05.05
+
+1. Dockerfile uses the `26.05` APT suite derived from `KOHA_VERSION=26.05.05` and installs `koha-core=26.05.05-1`.
+2. README records the target version and the dependency on package availability in the APT index.

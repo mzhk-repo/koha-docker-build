@@ -19,7 +19,7 @@
 - `Dockerfile` і все, що копіюється в image (`files/`, `scripts/koha-setup/`);
 - CI workflow `.github/workflows/build-and-push.yml`;
 - локальні policy-скрипти (`scripts/check-*.sh`);
-- документація image-рівня (`README.md`, `ARCHITECTURE.md`, changelog томи).
+- документація image-рівня (`README.md`, `docs/ARCHITECTURE.md`, changelog томи).
 
 2. Не входить у build-repo:
 - production `docker-compose`/Helm/K8s конфіг середовища;
@@ -41,9 +41,9 @@ koha-docker-build/
   .gitleaks.toml
   .trivyignore
   README.md
-  ARCHITECTURE.md
+  docs/ARCHITECTURE.md
   CHANGELOG.md                     # індекс changelog-томів
-  CHANGELOGS/                      # детальні changelog томи
+  docs/changelogs/                 # детальні changelog томи
 ```
 
 ## 4) CI/CD пайплайн (актуально)
@@ -110,8 +110,8 @@ Rollback у deploy-repo виконується поверненням попер
 ## 8) Changelog модель
 
 1. `CHANGELOG.md` — короткий індекс томів + статус активного.
-2. Деталі змін — у `CHANGELOGS/CHANGELOG_<YEAR>_VOL_<NN>.md`.
-3. При досягненні soft limit (~300 рядків) створюється новий том.
+2. Деталі змін — у `docs/changelogs/CHANGELOG_<YEAR>_VOL_<NN>.md`.
+3. При досягненні soft limit (~900 рядків) створюється новий том; hard limit — 950 рядків.
 
 ## 9) Що не додаємо в build-repo
 

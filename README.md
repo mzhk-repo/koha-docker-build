@@ -2,7 +2,7 @@
 
 [![Docker Hub](https://img.shields.io/badge/Docker%20Hub-pinokew%2Fkoha-blue?logo=docker)](https://hub.docker.com/r/pinokew/koha)
 [![GitHub Workflow](https://github.com/pinokew/koha-docker-build/actions/workflows/build-and-push.yml/badge.svg)](https://github.com/pinokew/koha-docker-build/actions/workflows/build-and-push.yml)
-[![Koha Version](https://img.shields.io/badge/Koha-25.05-2c7a7b)](https://koha-community.org/)
+[![Koha Version](https://img.shields.io/badge/Koha-26.05.05-2c7a7b)](https://koha-community.org/)
 [![Base Image](https://img.shields.io/badge/Base%20Image-debian%3Abookworm-0b7285)](https://hub.docker.com/_/debian)
 
 Репозиторій збірки Docker-образу Koha для публікації в Docker Hub. Він містить Dockerfile, runtime-конфіги, bootstrap pipeline на `s6-overlay`, quality/security перевірки та CI/CD пайплайн публікації образу.
@@ -31,7 +31,7 @@
 
 | Параметр | Значення |
 |---|---|
-| Поточна цільова версія Koha | `25.05` |
+| Поточна цільова версія Koha | `26.05.05` |
 | Базовий образ | `debian:bookworm` |
 | Менеджер процесів | `s6-overlay 3.2.0.2` |
 | HTTP endpoints | `8080` OPAC, `8081` Intranet |
@@ -86,7 +86,7 @@ Koha сама по собі має складний runtime-контракт: с
 |---|---|---|
 | Base OS | Debian Bookworm | Базове середовище контейнера |
 | Init / process supervision | s6-overlay | PID 1, orchestration сервісів у контейнері |
-| Application | Koha 25.05 (`koha-core`) | ILS / бібліотечна система |
+| Application | Koha 26.05.05 (`koha-core`) | ILS / бібліотечна система |
 | Web server | Apache 2 | OPAC та staff/intranet endpoints |
 | PSGI app server | Starman / plack | Виконання Koha через plack |
 | Search engine | Zebra (`idzebra-2.0`) | Індексація та пошук за замовчуванням стеку образу |
@@ -112,11 +112,9 @@ koha-docker-build/
 ├── .github/workflows/build-and-push.yml   # CI checks, build, publish, SBOM, attestation
 ├── Dockerfile                             # Збірка образу Koha
 ├── README.md                              # Цей документ
-├── README.example.md                      # Приклад структури деталізованого README
-├── ARCHITECTURE.md                        # Межі відповідальності та build-архітектура
+├── docs/ARCHITECTURE.md                   # Межі відповідальності та build-архітектура
 ├── CHANGELOG.md                           # Короткий індекс changelog томів
-├── CHANGELOGS/                            # Детальні release-зміни
-├── archive/                               # Історичні/архівні файли та workflow artifacts
+├── docs/changelogs/                       # Детальні release-зміни
 ├── docker/pinokew/ports.conf              # Контракт HTTP Listen портів образу
 ├── files/                                 # Файли, що копіюються всередину image
 │   ├── etc/apache2/                       # Apache envvars, confs, vhost templates
@@ -142,7 +140,7 @@ koha-docker-build/
 | `scripts/koha-setup/steps/` | Послідовні runtime-кроки першого старту та повторних стартів |
 | `docker/pinokew/ports.conf` | Еталонний список HTTP Listen портів для policy check |
 | `.github/workflows/build-and-push.yml` | Єдине джерело істини для CI/CD поведінки build repo |
-| `ARCHITECTURE.md` | Зафіксовані межі відповідальності build repo |
+| `docs/ARCHITECTURE.md` | Зафіксовані межі відповідальності build repo |
 
 ## Топологія системи
 
@@ -193,9 +191,9 @@ koha-docker-build/
 
 1. Бере `debian:bookworm` за базу.
 2. Встановлює системні залежності та Apache.
-3. Підключає офіційний Koha apt repository для `25.05`.
+3. Підключає офіційний Koha apt repository для гілки `26.05`.
 4. Генерує локалі `en_US.UTF-8` і `uk_UA.UTF-8`.
-5. Встановлює `koha-core`, `idzebra-2.0`, `logrotate` та допоміжні perl/system пакети.
+5. Встановлює `koha-core` версії `26.05.05-1`, `idzebra-2.0`, `logrotate` та допоміжні perl/system пакети. Версія пакета задана через `KOHA_VERSION`; якщо її приберуть з APT-індексу, збірка потребуватиме оновлення версії.
 6. Патчить `/usr/sbin/koha-create`, щоб створення каталогів логів було безпечним при повторному запуску.
 7. Вмикає потрібні Apache modules та вимикає default site.
 8. Копіює runtime-файли з `files/` і setup pipeline зі `scripts/koha-setup/`.
@@ -566,7 +564,7 @@ bash ./scripts/check-db-import-safety.sh
 - `Dockerfile` змінюється, коли треба оновити системний стек або сам спосіб збірки image.
 - `files/` змінюється, коли змінюється runtime contract усередині контейнера.
 - `scripts/koha-setup/steps/` змінюється, коли змінюється порядок або логіка bootstrap.
-- `ARCHITECTURE.md` і цей README потрібно оновлювати, якщо змінюється scope або поведінка образу.
+- `docs/ARCHITECTURE.md` і цей README потрібно оновлювати, якщо змінюється scope або поведінка образу.
 
 ## Troubleshooting
 
@@ -623,9 +621,9 @@ bash ./scripts/check-internal-ports-policy.sh
 
 ## Документація та changelog
 
-- `ARCHITECTURE.md` фіксує межі відповідальності build repo, CI/CD контракт і runtime-модель.
+- `docs/ARCHITECTURE.md` фіксує межі відповідальності build repo, CI/CD контракт і runtime-модель.
 - `CHANGELOG.md` є коротким індексом changelog-томів.
-- Детальні зміни накопичуються в `CHANGELOGS/CHANGELOG_<YEAR>_VOL_<NN>.md`.
+- Детальні зміни накопичуються в `docs/changelogs/CHANGELOG_<YEAR>_VOL_<NN>.md`.
 
 ## Підсумок
 
