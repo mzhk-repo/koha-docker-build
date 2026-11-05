@@ -2,7 +2,7 @@ FROM debian:bookworm
 
 ENV DEBIAN_FRONTEND=noninteractive
 ARG S6_OVERLAY_VERSION=3.2.0.2
-ARG KOHA_VERSION=25.05
+ARG KOHA_VERSION=26.05.05
 ARG TARGETARCH
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
